@@ -34,6 +34,16 @@ class MiJuego(arcade.Window):
         """Actualiza la lógica del juego"""
         self.jugador_x +=self.velocidad_x
         self.jugador_y += self.velocidad_y
+
+        if self.jugador_x > ANCHO_PANTALLA:
+            self.jugador_x = ANCHO_PANTALLA
+        if self.jugador_x < 0:
+            self.jugador_x = 0
+        if self.jugador_y < 0:
+            self.jugador_y = 0
+        if self.jugador_y > ALTO_PANTALLA:
+            self.jugador_y = ALTO_PANTALLA
+        
     
     def on_key_press(self, tecla, modificadores):
         """Se ejecuta cuando se preciona una telca"""
@@ -54,8 +64,6 @@ class MiJuego(arcade.Window):
         if tecla in (arcade.key.W, arcade.key.S, arcade.key.A, arcade.key.D):
             self.velocidad_y = 0
             self.velocidad_x = 0
-        
-        
         
 
 
