@@ -22,7 +22,7 @@ class MiJuego(arcade.Window):
     def setup(self):
         """Configura el juego, llamar para iniciar o reiniciar"""
         #Crear el sprite del jugador
-        self.jugador = arcade.Sprite(RUTA_JUGADOR, ESCALA_JUGADOR)
+        self.jugador = arcade.Sprite(RUTA_JUGADOR, ESCALA_DEL_JUGADOR)
         self.jugador.center_x = ANCHO_PANTALLA // 2
         self.jugador.center_y = ALTO_PANTALLA // 2
 
