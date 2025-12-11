@@ -1,12 +1,15 @@
 import arcade
+import random
 
 #constantes del juego
 
 ANCHO_PANTALLA = 800
 ALTO_PANTALLA = 600
 RUTA_JUGADOR = "assets/images/player/necromancer_anim_f2.png"
+RUTA_MONEDA = "assets/images/tiles/spr_coin_ama.png"
 # Escala del sprite (1.0 = tamaño original)
 ESCALA_DEL_JUGADOR = 3
+ESCALA_MONEDA = 3
 VELOCIDAD_DE_MOVIMIENTO = 5
 TITULO = "Juego con sprites"
 
@@ -16,11 +19,13 @@ class MiJuego(arcade.Window):
         """Inicializa la ventana del juego"""
         super().__init__(ANCHO_PANTALLA, ALTO_PANTALLA, TITULO)
         arcade.set_background_color (arcade.color.CORNFLOWER_BLUE)
+        self.monedas_lista = None
 
     def setup(self):
         """Configura el juego, llamar para iniciar o reiniciar"""
         #Crear el sprite del jugador
         #El sprite del jugador (se inicializa en setup)
+        self.monedas_lista = arcade.SpriteList()
         self.jugador = Jugador()
     
 
@@ -36,11 +41,19 @@ class MiJuego(arcade.Window):
         print("Tecla D:", arcade.key.D)
 
 
+        for i in range(10):
+            moneda = arcade.Sprite(RUTA_MONEDA, ESCALA_MONEDA)
+            moneda.center_x = random.randint(50, ANCHO_PANTALLA - 50)
+            moneda.center_y = random.randint(50, ALTO_PANTALLA - 50)
+            self.monedas_lista.append(moneda)
+
+
     def on_draw(self):
         """Dibuja todo en la pantalla"""
         self.clear()
         arcade.draw.draw_sprite(self.jugador)
         self.jugador.draw_hit_box()
+        self.monedas_lista.draw()
 
     def on_key_press(self, tecla, modificadores):
         print("Se oprimió la tecla:", tecla)
@@ -52,6 +65,15 @@ class MiJuego(arcade.Window):
 
     def on_update(self, delta_time):
         self.jugador.update()
+        self.monedas_lista.update()
+
+        monedas_tocadas = arcade.check_for_collision_with_list(
+        self.jugador, self.monedas_lista
+        )
+    
+        # Procesar cada moneda tocada
+        for moneda in monedas_tocadas:
+            moneda.remove_from_sprite_lists()
 
 class Jugador(arcade.Sprite):
     def __init__(self):
