@@ -1,17 +1,17 @@
 import arcade
 import random
+from constantes import (
+    ALTO_PANTALLA,
+    ANCHO_PANTALLA, 
+    TITULO, 
+    RUTA_MONEDA, 
+    ESCALA_MONEDA
+)
+from player import JugadorAnimado
 
 #constantes del juego
 
-ANCHO_PANTALLA = 800
-ALTO_PANTALLA = 600
-RUTA_JUGADOR = "assets/images/player/necromancer_anim_f2.png"
-RUTA_MONEDA = "assets/images/tiles/spr_coin_ama.png"
-# Escala del sprite (1.0 = tamaño original)
-ESCALA_DEL_JUGADOR = 3
-ESCALA_MONEDA = 3
-VELOCIDAD_DE_MOVIMIENTO = 5
-TITULO = "Juego con sprites"
+
 
 class MiJuego(arcade.Window):
     """Ventana principal del juego"""
@@ -20,28 +20,27 @@ class MiJuego(arcade.Window):
         super().__init__(ANCHO_PANTALLA, ALTO_PANTALLA, TITULO)
         arcade.set_background_color (arcade.color.CORNFLOWER_BLUE)
         self.monedas_lista = None
+        self.jugador_lista = None
+        self.jugador = None
+        self.puntuacion = None
 
     def setup(self):
         """Configura el juego, llamar para iniciar o reiniciar"""
         #Crear el sprite del jugador
         #El sprite del jugador (se inicializa en setup)
         self.monedas_lista = arcade.SpriteList()
-        self.jugador = Jugador()
+        self.jugador_lista = arcade.SpriteList()
+        self.jugador = JugadorAnimado()
+        self.puntuacion = 0
     
 
         self.jugador.center_x = ANCHO_PANTALLA // 2
         self.jugador.center_y = ALTO_PANTALLA // 2
-        print("Tecla arriba:", arcade.key.UP)
-        print("Tecla abajo:", arcade.key.DOWN)
-        print("Tecla izquierda:", arcade.key.LEFT)
-        print("Tecla derecha:", arcade.key.RIGHT)
-        print("Tecla W:", arcade.key.W)
-        print("Tecla S:", arcade.key.S)
-        print("Tecla A:", arcade.key.A)
-        print("Tecla D:", arcade.key.D)
+        self.jugador_lista.append(self.jugador)
+        self.dibujar_monedas()
 
-
-        for i in range(10):
+    def dibujar_monedas(self):
+        for _ in range(10):
             moneda = arcade.Sprite(RUTA_MONEDA, ESCALA_MONEDA)
             moneda.center_x = random.randint(50, ANCHO_PANTALLA - 50)
             moneda.center_y = random.randint(50, ALTO_PANTALLA - 50)
@@ -51,9 +50,17 @@ class MiJuego(arcade.Window):
     def on_draw(self):
         """Dibuja todo en la pantalla"""
         self.clear()
-        arcade.draw.draw_sprite(self.jugador)
+        self.jugador_lista.draw()
         self.jugador.draw_hit_box()
         self.monedas_lista.draw()
+        arcade.draw_text(
+        f"Puntuación: {self.puntuacion}",
+        10,  # posición x
+        ALTO_PANTALLA - 30,  # posición y
+        arcade.color.WHITE,  # color
+        18,  # tamaño de fuente
+        font_name="Arial"
+        )
 
     def on_key_press(self, tecla, modificadores):
         print("Se oprimió la tecla:", tecla)
@@ -64,58 +71,22 @@ class MiJuego(arcade.Window):
         self.jugador.liberar_tecla(tecla)
 
     def on_update(self, delta_time):
-        self.jugador.update()
         self.monedas_lista.update()
 
         monedas_tocadas = arcade.check_for_collision_with_list(
         self.jugador, self.monedas_lista
         )
-    
+        self.jugador_lista.update()
+        self.jugador.update_animation(delta_time)
         # Procesar cada moneda tocada
         for moneda in monedas_tocadas:
             moneda.remove_from_sprite_lists()
-
-class Jugador(arcade.Sprite):
-    def __init__(self):
-        super().__init__(RUTA_JUGADOR, ESCALA_DEL_JUGADOR)
-
-        # Velocidad del jugador
-        self.change_x = 0
-        self.change_y = 0
-
-    def mover(self, tecla):
-        if tecla == arcade.key.UP or tecla == arcade.key.W:
-            self.change_y = VELOCIDAD_DE_MOVIMIENTO
-        if tecla == arcade.key.DOWN or tecla == arcade.key.S:
-            self.change_y = -VELOCIDAD_DE_MOVIMIENTO
-        if tecla == arcade.key.LEFT or tecla == arcade.key.A:
-            self.change_x = -VELOCIDAD_DE_MOVIMIENTO
-        if tecla == arcade.key.RIGHT or tecla == arcade.key.D:
-            self.change_x = VELOCIDAD_DE_MOVIMIENTO
-
-    def liberar_tecla(self, tecla):
-        print("Se liberó la tecla:", tecla)
-        if tecla in (arcade.key.UP, arcade.key.DOWN, arcade.key.W, arcade.key.S):
-            self.change_y = 0
-        elif tecla in (arcade.key.LEFT, arcade.key.RIGHT, arcade.key.A, arcade.key.D):
-            self.change_x = 0
-    
-    def update(self):
-        super().update()
-
-        if self.left < 0:
-            self.left = 0
-
-        if self.right > ANCHO_PANTALLA:
-            self.right = ANCHO_PANTALLA
+            self.puntuacion += 10
         
-        if self.bottom < 0:
-            self.bottom = 0
-        
-        if self.top > ALTO_PANTALLA:
-            self.top = ALTO_PANTALLA
+        if len(self.monedas_lista) == 0:
+            self.dibujar_monedas()
 
-    
+
 
 
 def main():
