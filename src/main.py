@@ -1,11 +1,13 @@
 import arcade
+import time
 import random
 from constantes import (
     ALTO_PANTALLA,
     ANCHO_PANTALLA, 
     TITULO, 
     RUTA_MONEDA, 
-    ESCALA_MONEDA
+    ESCALA_MONEDA,
+    TIME_OUT
 )
 from player import JugadorAnimado
 
@@ -23,6 +25,7 @@ class MiJuego(arcade.Window):
         self.jugador_lista = None
         self.jugador = None
         self.puntuacion = None
+        self.tiempo_inicio = None
 
     def setup(self):
         """Configura el juego, llamar para iniciar o reiniciar"""
@@ -32,6 +35,7 @@ class MiJuego(arcade.Window):
         self.jugador_lista = arcade.SpriteList()
         self.jugador = JugadorAnimado()
         self.puntuacion = 0
+        self.tiempo_inicio = time.time()
     
 
         self.jugador.center_x = ANCHO_PANTALLA // 2
@@ -49,17 +53,27 @@ class MiJuego(arcade.Window):
 
     def on_draw(self):
         """Dibuja todo en la pantalla"""
+        if self.tiempo_restante() < 0:
+            return
         self.clear()
         self.jugador_lista.draw()
         self.jugador.draw_hit_box()
         self.monedas_lista.draw()
         arcade.draw_text(
-        f"Puntuación: {self.puntuacion}",
-        10,  # posición x
-        ALTO_PANTALLA - 30,  # posición y
-        arcade.color.WHITE,  # color
-        18,  # tamaño de fuente
-        font_name="Arial"
+            f"Puntuación: {self.puntuacion}",
+            10,  # posición x
+            ALTO_PANTALLA - 30,  # posición y
+            arcade.color.BLACK,  # color
+            18,  # tamaño de fuente
+            font_name="Arial"
+        )
+        arcade.draw_text(
+            f"Tiempo: {self.tiempo_restante()}",
+            10,  # posición x
+            ALTO_PANTALLA - 60,  # posición y
+            arcade.color.BLACK,  # color
+            18,  # tamaño de fuente
+            font_name="Arial"
         )
 
     def on_key_press(self, tecla, modificadores):
@@ -71,6 +85,19 @@ class MiJuego(arcade.Window):
         self.jugador.liberar_tecla(tecla)
 
     def on_update(self, delta_time):
+        if self.tiempo_restante() < 0:
+            self.clear()
+            self.jugador_lista = None
+            arcade.draw_text(
+                f"Fin: {self.puntuacion} puntos",
+                10,  # posición x
+                ALTO_PANTALLA - 30,  # posición y
+                arcade.color.BLACK,  # color
+                18,  # tamaño de fuente
+                font_name="Arial"
+            )
+            return
+
         self.monedas_lista.update()
 
         monedas_tocadas = arcade.check_for_collision_with_list(
@@ -87,7 +114,8 @@ class MiJuego(arcade.Window):
             self.dibujar_monedas()
 
 
-
+    def tiempo_restante(self):
+        return int(self.tiempo_inicio + TIME_OUT - time.time())
 
 def main():
     """Función principal del juego"""
