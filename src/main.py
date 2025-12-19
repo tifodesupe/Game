@@ -30,6 +30,15 @@ class MiJuego(arcade.Window):
         #El sprite del jugador (se inicializa en setup)
         self.jugador_lista = arcade.SpriteList()
         self.jugador = JugadorAnimado()
+        self.plataformas = arcade.SpriteList(use_spatial_hash=True)
+        suelo = arcade.SpriteSolidColor(
+            ANCHO_PANTALLA,
+            40,
+            arcade.color.DARK_BROWN
+        )
+        suelo.center_x = ANCHO_PANTALLA // 2
+        suelo.center_y = 20
+        self.plataformas.append(suelo)
     
 
         self.jugador.center_x = ANCHO_PANTALLA // 2
@@ -40,11 +49,13 @@ class MiJuego(arcade.Window):
             walls=self.plataformas,        # Plataformas y suelo
             gravity_constant= GRAVEDAD      # Fuerza de gravedad
         )
+        self.jugador.set_motor_fisica(self.motor_fisica)        
 
 
     def on_draw(self):
         """Dibuja todo en la pantalla"""
         self.clear()
+        self.plataformas.draw()
         self.jugador_lista.draw()
         self.jugador.draw_hit_box()
     

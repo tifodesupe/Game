@@ -19,15 +19,15 @@ class Jugador(arcade.Sprite):
         self.texturas_idle = []
         self.texturas_caminar_derecha = []
         self.texturas_caminar_izquierda = []
+        self.motor_fisica = None
+    
+    def set_motor_fisica(self, motor):
+        self.motor_fisica = motor
 
-    def mover(self, tecla):
-        if tecla == arcade.key.SPACE or tecla == arcade.key.UP:
-            # Solo saltar si estamos en el suelo
-            if self.bottom == 0:
-                if self.motor_fisica.can_jump():
-                    self.change_y = VELOCIDAD_SALTO
-            else:
-                return
+    def mover(self, tecla,):
+        if tecla in (arcade.key.SPACE, arcade.key.UP):
+            if self.motor_fisica and self.motor_fisica.can_jump():
+                self.change_y = VELOCIDAD_SALTO
         if tecla == arcade.key.LEFT or tecla == arcade.key.A:
             self.change_x = -VELOCIDAD_DE_MOVIMIENTO
         if tecla == arcade.key.RIGHT or tecla == arcade.key.D:
@@ -35,9 +35,7 @@ class Jugador(arcade.Sprite):
 
     def liberar_tecla(self, tecla):
         print("Se liberó la tecla:", tecla)
-        if tecla in (arcade.key.UP, arcade.key.DOWN, arcade.key.W, arcade.key.S):
-            self.change_y = 0
-        elif tecla in (arcade.key.LEFT, arcade.key.RIGHT, arcade.key.A, arcade.key.D):
+        if tecla in (arcade.key.LEFT, arcade.key.RIGHT, arcade.key.A, arcade.key.D):
             self.change_x = 0
     
     def update(self, delta_time):
