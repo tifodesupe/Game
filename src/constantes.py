@@ -9,3 +9,5 @@ ESCALA_MONEDA = 3
 VELOCIDAD_DE_MOVIMIENTO = 5
 TITULO = "Juego con sprites"
 TIME_OUT = 30
+VELOCIDAD_SALTO = 15
+GRAVEDAD = 0.8  # Constante de gravedad

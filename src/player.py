@@ -4,8 +4,11 @@ from constantes import(
     ESCALA_DEL_JUGADOR,
     VELOCIDAD_DE_MOVIMIENTO,
     ALTO_PANTALLA,
-    ANCHO_PANTALLA
+    ANCHO_PANTALLA,
+    VELOCIDAD_SALTO
 )
+
+
 class Jugador(arcade.Sprite):
     def __init__(self):
         super().__init__(RUTA_JUGADOR, ESCALA_DEL_JUGADOR)
@@ -18,10 +21,13 @@ class Jugador(arcade.Sprite):
         self.texturas_caminar_izquierda = []
 
     def mover(self, tecla):
-        if tecla == arcade.key.UP or tecla == arcade.key.W:
-            self.change_y = VELOCIDAD_DE_MOVIMIENTO
-        if tecla == arcade.key.DOWN or tecla == arcade.key.S:
-            self.change_y = -VELOCIDAD_DE_MOVIMIENTO
+        if tecla == arcade.key.SPACE or tecla == arcade.key.UP:
+            # Solo saltar si estamos en el suelo
+            if self.bottom == 0:
+                if self.motor_fisica.can_jump():
+                    self.change_y = VELOCIDAD_SALTO
+            else:
+                return
         if tecla == arcade.key.LEFT or tecla == arcade.key.A:
             self.change_x = -VELOCIDAD_DE_MOVIMIENTO
         if tecla == arcade.key.RIGHT or tecla == arcade.key.D:
