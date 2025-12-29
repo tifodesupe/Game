@@ -23,6 +23,7 @@ class MiJuego(arcade.Window):
         self.jugador = None
         self.motor_fisica = None
         self.plataformas = None
+        self.tile_map = None
 
     def setup(self):
         """Configura el juego, llamar para iniciar o reiniciar"""
