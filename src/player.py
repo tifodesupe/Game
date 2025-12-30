@@ -34,7 +34,7 @@ class Jugador(arcade.Sprite):
             self.change_x = VELOCIDAD_DE_MOVIMIENTO
 
     def liberar_tecla(self, tecla):
-        print("Se liberó la tecla:", tecla)
+        #print("Se liberó la tecla:", tecla)
         if tecla in (arcade.key.LEFT, arcade.key.RIGHT, arcade.key.A, arcade.key.D):
             self.change_x = 0
     
@@ -44,8 +44,8 @@ class Jugador(arcade.Sprite):
         if self.left < 0:
             self.left = 0
 
-        if self.right > ANCHO_PANTALLA:
-            self.right = ANCHO_PANTALLA
+        if self.right > 6396.5:
+            self.right = 6396.5
         
         if self.bottom < 0:
             self.bottom = 0
