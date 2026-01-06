@@ -30,6 +30,7 @@ class MiJuego(arcade.View):
         self.camara_gui = None
         self.vidas = None
         self.window = window
+        self.enemigos = None
         
 
     def setup(self):
@@ -57,7 +58,7 @@ class MiJuego(arcade.View):
         self.jugador.center_y = ALTO_PANTALLA // 2
         self.jugador_lista.append(self.jugador)
         self.puntuacion = 0
-        self.vidas = 5
+        self.vidas = 1
 
 
 
@@ -66,6 +67,9 @@ class MiJuego(arcade.View):
                 "use_spatial_hash": True  # Optimiza colisiones
             },
             "Monedas": {
+                "use_spatial_hash": True
+            },
+            "Enemigos":{
                 "use_spatial_hash": True
             }
         }
@@ -80,6 +84,7 @@ class MiJuego(arcade.View):
         # Extraer las capas como SpriteLists
         self.plataformas = self.tile_map.sprite_lists["Plataformas"]
         self.monedas = self.tile_map.sprite_lists["Monedas"]
+        self.enemigos = self.tile_map.sprite_lists["Enemigos"]
         for moneda in self.monedas:
             #print("Moneda:", moneda)
             pass
@@ -119,6 +124,7 @@ class MiJuego(arcade.View):
         self.monedas.draw()
         self.jugador_lista.draw()
         self.jugador_lista.draw_hit_boxes()
+        self.enemigos.draw()
         # self.jugador.draw_hit_box() # Opcional: solo para pruebas
 
         # 3. Activar cámara GUI (lo que está fijo en la pantalla)
@@ -160,15 +166,26 @@ class MiJuego(arcade.View):
         monedas_tocadas = arcade.check_for_collision_with_list(
             self.jugador, self.monedas
         )
+        enemigos_tocados = arcade.check_for_collision_with_list(
+            self.jugador, self.enemigos
+        )
         self.centrar_camara_en_jugador()  # Actualizar cámara
         self.monedas.update()
         
+        for enemigo in enemigos_tocados:
+            enemigo.remove_from_sprite_lists()
+            self.vidas -=1
+            menu = MenuView(self.window)
+            self.window.show_view(menu)
+
         for moneda in monedas_tocadas:
             moneda.remove_from_sprite_lists()
             self.puntuacion += 10
             # Aquí podrías reproducir un sonido
+        
+    
         if self.vidas <= 0:
-            game_over = GameOverView(self.score)
+            game_over = GameOverView(self.puntuacion)
             self.window.show_view(game_over)
 
 
@@ -289,7 +306,7 @@ class GameOverView(arcade.View):
 
     def on_key_press(self, key, modifiers):
         if key == arcade.key.ENTER:
-            menu = MenuView()
+            menu = MenuView(self.window)
             self.window.show_view(menu)
 
 
