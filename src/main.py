@@ -16,7 +16,7 @@ from player import JugadorAnimado
 
 class MiJuego(arcade.View):
     """Ventana principal del juego"""
-    def __init__ (self):
+    def __init__ (self, window):
         """Inicializa la ventana del juego"""
         super().__init__()
         ###arcade.set_background_color (arcade.color.CORNFLOWER_BLUE)
@@ -29,11 +29,8 @@ class MiJuego(arcade.View):
         self.camara_juego = None
         self.camara_gui = None
         self.vidas = None
+        self.window = window
         
-    def on_show_view(self):
-        arcade.set_background_color(arcade.color.BLACK)
-        self.camara_juego = arcade.Camera2D(self.window)
-        self.camara_gui = arcade.Camera2D(self.window)
 
     def setup(self):
         """Configura el juego, llamar para iniciar o reiniciar"""
@@ -52,8 +49,8 @@ class MiJuego(arcade.View):
         suelo.center_y = 20
         self.plataformas.append(suelo)"""
 
-        self.camara_juego = arcade.Camera2D(self.window)
-        self.camara_gui = arcade.Camera2D(self.window)
+        self.camara_juego = arcade.Camera2D()
+        self.camara_gui = arcade.Camera2D()
 
 
         self.jugador.center_x = ANCHO_PANTALLA // 2
@@ -84,7 +81,8 @@ class MiJuego(arcade.View):
         self.plataformas = self.tile_map.sprite_lists["Plataformas"]
         self.monedas = self.tile_map.sprite_lists["Monedas"]
         for moneda in self.monedas:
-            print("Moneda:", moneda)
+            #print("Moneda:", moneda)
+            pass
         self.fondo = self.tile_map.sprite_lists.get("Fondo", arcade.SpriteList())
         
         # Color de fondo del mapa (si se definió en Tiled)
@@ -134,6 +132,14 @@ class MiJuego(arcade.View):
             arcade.color.WHITE,
             20
         )
+        
+        arcade.draw_text(
+            f"Vidas: {self.vidas}",
+            700,                         # Margen izquierdo
+            ALTO_PANTALLA - 40,           # Margen superior
+            arcade.color.WHITE,
+            20
+        )
 
     def on_key_press(self, tecla, modificadores):
         ###print("Se oprimió la tecla:", tecla)
@@ -141,7 +147,7 @@ class MiJuego(arcade.View):
         if tecla == arcade.key.ESCAPE:
             # Ir a pausa, pasando referencia a esta vista
             pause = PauseView(self)
-            self.show_view(pause)
+            self.window.show_view(pause)
     
     def on_key_release(self, tecla, modificadores):
         """Se ejecuta cuando se suelta una tecla."""
@@ -168,6 +174,9 @@ class MiJuego(arcade.View):
 
 class MenuView(arcade.View):
     """Vista del menú principal."""
+    def __init__(self, window):
+        super().__init__(window)
+        self.window = window
 
     def on_show_view(self):
         """Se ejecuta cuando esta vista se activa (equivalente a enter())."""
@@ -197,7 +206,7 @@ class MenuView(arcade.View):
         """Maneja las teclas presionadas."""
         if key == arcade.key.ENTER:
             # Transición al estado de juego
-            game_view = MiJuego()
+            game_view = MiJuego(self.window)
             self.window.show_view(game_view)
             game_view.setup()
 
@@ -247,7 +256,7 @@ class PauseView(arcade.View):
             self.window.show_view(self.game_view)
         elif key == arcade.key.Q:
             # Volver al menú (nueva instancia)
-            menu = MenuView()
+            menu = MenuView(self.window)
             self.window.show_view(menu)
     
 class GameOverView(arcade.View):
@@ -287,13 +296,11 @@ class GameOverView(arcade.View):
 
 
 def main():
-    """Función principal del juego
-    juego = MiJuego()
-    juego.setup()
-    arcade.run()"""
-
+    """Función principal del juego"""
     window = arcade.Window(ANCHO_PANTALLA, ALTO_PANTALLA, TITULO)
-    menu = MenuView()
+    #arcade.run()
+
+    menu = MenuView(window)
     window.show_view(menu)
     arcade.run()
 
