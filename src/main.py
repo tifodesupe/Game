@@ -243,6 +243,14 @@ class MenuView(arcade.View):
             font_size=20,
             anchor_x="center"
         )
+        arcade.draw_text(
+            "Presiona ESCAPE para salir",
+            ANCHO_PANTALLA / 2- 123,
+            ALTO_PANTALLA / 2 - 298,
+            arcade.color.RED,
+            font_size=20,
+            anchor_x="right"
+        )
 
     def on_key_press(self, key, modifiers):
         """Maneja las teclas presionadas."""
@@ -251,6 +259,8 @@ class MenuView(arcade.View):
             game_view = MiJuego(self.window)
             game_view.setup(self.vidas)
             self.window.show_view(game_view)
+        if key == arcade.key.ESCAPE:
+            arcade.close_window() 
             
 
     
