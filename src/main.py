@@ -29,9 +29,11 @@ class MiJuego(arcade.View):
         self.enemigos = None
         self.sonido_daño = None
         self.sonido_moneda = None
+        self.sonido_vidas = None
+        self.sonido_muerte = None
         
 
-    def setup(self):
+    def setup(self, vidas):
         """Configura el juego, llamar para iniciar o reiniciar"""
         #Crear el sprite del jugador
         #El sprite del jugador (se inicializa en setup)
@@ -56,9 +58,14 @@ class MiJuego(arcade.View):
         self.jugador.center_y = ALTO_PANTALLA // 2
         self.jugador_lista.append(self.jugador)
         self.puntuacion = 0
-        self.vidas = 1
         self.sonido_moneda = arcade.load_sound("assets/sounds/pickupCoin.wav")
         self.sonido_daño = arcade.load_sound("assets/sounds/hitHurt.wav")
+        self.sonido_vidas = arcade.load_sound("assets/sounds/powerUp.wav")
+        self.sonido_muerte = arcade.load_sound("assets/sounds/synth.wav")
+        if vidas:
+            self.vidas = vidas
+        else:
+            self.vidas = 5
 
 
         layer_options = {
@@ -174,30 +181,35 @@ class MiJuego(arcade.View):
         for enemigo in enemigos_tocados:
             enemigo.remove_from_sprite_lists()
             self.vidas -=1
-            menu = MenuView(self.window, 1)
-            self.window.show_view(menu)
             arcade.play_sound(self.sonido_daño)
+            menu = MenuView(self.window, 1, self.vidas)
+            if self.vidas <= 0:
+                arcade.play_sound(self.sonido_muerte)
+                game_over = GameOverView(self.puntuacion)
+                self.window.show_view(game_over)
+            else:
+                self.window.show_view(menu)
+
 
         for moneda in monedas_tocadas:
             moneda.remove_from_sprite_lists()
             self.puntuacion += 10
             arcade.play_sound(self.sonido_moneda)
+            if self.puntuacion % 300 == 0 and self.puntuacion != 0:
+                arcade.play_sound(self.sonido_vidas)
+                self.vidas +=1
             # Aquí podrías reproducir un sonido
-        
-    
-        if self.vidas <= 0:
-            game_over = GameOverView(self.puntuacion)
-            self.window.show_view(game_over)
 
 
 class MenuView(arcade.View):
     """Vista del menú principal."""
-    def __init__(self, window, quitar_musica):
+    def __init__(self, window, quitar_musica, vidas):
         super().__init__(window)
         self.window = window
         self.sonido_fondo = arcade.load_sound("assets/sounds/music/BloonGame.mp3")
         self.music_player = None
         self.quitar_musica = quitar_musica
+        self.vidas = vidas
 
     def on_show_view(self):
         """Se ejecuta cuando esta vista se activa (equivalente a enter())."""
@@ -237,7 +249,7 @@ class MenuView(arcade.View):
         if key == arcade.key.ENTER:
             # Transición al estado de juego
             game_view = MiJuego(self.window)
-            game_view.setup()
+            game_view.setup(self.vidas)
             self.window.show_view(game_view)
             
 
@@ -287,7 +299,7 @@ class PauseView(arcade.View):
             self.window.show_view(self.game_view)
         elif key == arcade.key.Q:
             # Volver al menú (nueva instancia)
-            menu = MenuView(self.window, 1)
+            menu = MenuView(self.window, 1, 0)
             self.window.show_view(menu)
     
 class GameOverView(arcade.View):
@@ -320,7 +332,7 @@ class GameOverView(arcade.View):
 
     def on_key_press(self, key, modifiers):
         if key == arcade.key.ENTER:
-            menu = MenuView(self.window, 1)
+            menu = MenuView(self.window, 1, 0)
             self.window.show_view(menu)
 
 
@@ -330,7 +342,7 @@ def main():
     window = arcade.Window(ANCHO_PANTALLA, ALTO_PANTALLA, TITULO)
     #arcade.run()
 
-    menu = MenuView(window, 0)
+    menu = MenuView(window, 0, 0)
     window.show_view(menu)
     arcade.run()
 
