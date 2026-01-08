@@ -271,8 +271,7 @@ class MenuView(arcade.View):
             game_view.setup(self.vidas)
             self.window.show_view(game_view)
         if key == arcade.key.ESCAPE:
-            arcade.close_window() 
-            
+            arcade.close_window()            
 
     
 class PauseView(arcade.View):
