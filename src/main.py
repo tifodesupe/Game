@@ -182,7 +182,7 @@ class MiJuego(arcade.View):
             enemigo.remove_from_sprite_lists()
             self.vidas -=1
             arcade.play_sound(self.sonido_daño)
-            menu = MenuView(self.window, 1, self.vidas)
+            menu = MenuView(self.window, 1, self.vidas, 1)
             if self.vidas <= 0:
                 arcade.play_sound(self.sonido_muerte)
                 game_over = GameOverView(self.puntuacion)
@@ -203,13 +203,14 @@ class MiJuego(arcade.View):
 
 class MenuView(arcade.View):
     """Vista del menú principal."""
-    def __init__(self, window, quitar_musica, vidas):
+    def __init__(self, window, quitar_musica, vidas, reanudar):
         super().__init__(window)
         self.window = window
         self.sonido_fondo = arcade.load_sound("assets/sounds/music/BloonGame.mp3")
         self.music_player = None
         self.quitar_musica = quitar_musica
         self.vidas = vidas
+        self.reanudar = reanudar
 
     def on_show_view(self):
         """Se ejecuta cuando esta vista se activa (equivalente a enter())."""
@@ -235,14 +236,24 @@ class MenuView(arcade.View):
             font_size=50,
             anchor_x="center"
         )
-        arcade.draw_text(
-            "Presiona ENTER para jugar",
-            ANCHO_PANTALLA / 2,
-            ALTO_PANTALLA / 2 - 30,
-            arcade.color.LIGHT_GRAY,
-            font_size=20,
-            anchor_x="center"
-        )
+        if  not self.reanudar:
+            arcade.draw_text(
+                "Presiona ENTER para comenzar",
+                ANCHO_PANTALLA / 2,
+                ALTO_PANTALLA / 2 - 30,
+                arcade.color.LIGHT_GRAY,
+                font_size=20,
+                anchor_x="center"
+            )
+        else:
+            arcade.draw_text(
+                "Presiona ENTER para continuar",
+                ANCHO_PANTALLA / 2,
+                ALTO_PANTALLA / 2 - 30,
+                arcade.color.LIGHT_GRAY,
+                font_size=20,
+                anchor_x="center"
+            )
         arcade.draw_text(
             "Presiona ESCAPE para salir",
             ANCHO_PANTALLA / 2- 123,
@@ -309,7 +320,7 @@ class PauseView(arcade.View):
             self.window.show_view(self.game_view)
         elif key == arcade.key.Q:
             # Volver al menú (nueva instancia)
-            menu = MenuView(self.window, 1, 0)
+            menu = MenuView(self.window, 1, 0, 0)
             self.window.show_view(menu)
     
 class GameOverView(arcade.View):
@@ -342,7 +353,7 @@ class GameOverView(arcade.View):
 
     def on_key_press(self, key, modifiers):
         if key == arcade.key.ENTER:
-            menu = MenuView(self.window, 1, 0)
+            menu = MenuView(self.window, 1, 0, 0)
             self.window.show_view(menu)
 
 
@@ -352,7 +363,7 @@ def main():
     window = arcade.Window(ANCHO_PANTALLA, ALTO_PANTALLA, TITULO)
     #arcade.run()
 
-    menu = MenuView(window, 0, 0)
+    menu = MenuView(window, 0, 0, 0)
     window.show_view(menu)
     arcade.run()
 
