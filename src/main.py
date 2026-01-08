@@ -6,13 +6,9 @@ from constantes import (
     ANCHO_PANTALLA, 
     TITULO,
     GRAVEDAD,
-    VELOCIDAD_SALTO,
-    TILE_SCALING
+    TILE_SCALING,
 )
 from player import JugadorAnimado
-#constantes del juego
-
-
 
 class MiJuego(arcade.View):
     """Ventana principal del juego"""
@@ -31,6 +27,8 @@ class MiJuego(arcade.View):
         self.vidas = None
         self.window = window
         self.enemigos = None
+        self.sonido_daño = None
+        self.sonido_moneda = None
         
 
     def setup(self):
@@ -59,7 +57,8 @@ class MiJuego(arcade.View):
         self.jugador_lista.append(self.jugador)
         self.puntuacion = 0
         self.vidas = 1
-
+        self.sonido_moneda = arcade.load_sound("assets/sounds/pickupCoin.wav")
+        self.sonido_daño = arcade.load_sound("assets/sounds/hitHurt.wav")
 
 
         layer_options = {
@@ -151,7 +150,7 @@ class MiJuego(arcade.View):
         ###print("Se oprimió la tecla:", tecla)
         self.jugador.mover(tecla)
         if tecla == arcade.key.ESCAPE:
-            # Ir a pausa, pasando referencia a esta vista
+            # Ir a pausa
             pause = PauseView(self)
             self.window.show_view(pause)
     
@@ -175,12 +174,14 @@ class MiJuego(arcade.View):
         for enemigo in enemigos_tocados:
             enemigo.remove_from_sprite_lists()
             self.vidas -=1
-            menu = MenuView(self.window)
+            menu = MenuView(self.window, 1)
             self.window.show_view(menu)
+            arcade.play_sound(self.sonido_daño)
 
         for moneda in monedas_tocadas:
             moneda.remove_from_sprite_lists()
             self.puntuacion += 10
+            arcade.play_sound(self.sonido_moneda)
             # Aquí podrías reproducir un sonido
         
     
@@ -191,13 +192,25 @@ class MiJuego(arcade.View):
 
 class MenuView(arcade.View):
     """Vista del menú principal."""
-    def __init__(self, window):
+    def __init__(self, window, quitar_musica):
         super().__init__(window)
         self.window = window
+        self.sonido_fondo = arcade.load_sound("assets/sounds/music/BloonGame.mp3")
+        self.music_player = None
+        self.quitar_musica = quitar_musica
 
     def on_show_view(self):
         """Se ejecuta cuando esta vista se activa (equivalente a enter())."""
         arcade.set_background_color(arcade.color.DARK_BLUE)
+    
+        if not self.sonido_fondo or self.quitar_musica:
+            return
+        
+        self.music_player = arcade.play_sound(
+            self.sonido_fondo,
+            volume=0.3,  # Volumen bajo para no molestar
+            loop=True  # Repetir infinitamente
+        )
 
     def on_draw(self):
         """Dibuja el menú."""
@@ -224,8 +237,9 @@ class MenuView(arcade.View):
         if key == arcade.key.ENTER:
             # Transición al estado de juego
             game_view = MiJuego(self.window)
-            self.window.show_view(game_view)
             game_view.setup()
+            self.window.show_view(game_view)
+            
 
     
 class PauseView(arcade.View):
@@ -273,7 +287,7 @@ class PauseView(arcade.View):
             self.window.show_view(self.game_view)
         elif key == arcade.key.Q:
             # Volver al menú (nueva instancia)
-            menu = MenuView(self.window)
+            menu = MenuView(self.window, 1)
             self.window.show_view(menu)
     
 class GameOverView(arcade.View):
@@ -306,9 +320,8 @@ class GameOverView(arcade.View):
 
     def on_key_press(self, key, modifiers):
         if key == arcade.key.ENTER:
-            menu = MenuView(self.window)
+            menu = MenuView(self.window, 1)
             self.window.show_view(menu)
-
 
 
 
@@ -317,7 +330,7 @@ def main():
     window = arcade.Window(ANCHO_PANTALLA, ALTO_PANTALLA, TITULO)
     #arcade.run()
 
-    menu = MenuView(window)
+    menu = MenuView(window, 0)
     window.show_view(menu)
     arcade.run()
 

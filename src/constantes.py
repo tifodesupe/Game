@@ -1,4 +1,3 @@
-
 ANCHO_PANTALLA = 800
 ALTO_PANTALLA = 600
 RUTA_JUGADOR = "assets/images/player/idle.png"
