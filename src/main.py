@@ -167,8 +167,20 @@ class MiJuego(arcade.View):
         """Se ejecuta cuando se suelta una tecla."""
         self.jugador.liberar_tecla(tecla)
 
-        
+    def enemigo_en_pantalla(self, enemigo):
+        margen = 100
 
+        cam_x = self.camara_juego.position.x
+
+        enemigo_x = enemigo.position[0]  # 👈 forzado a float
+
+        return (
+            cam_x - ANCHO_PANTALLA / 2 - margen
+            <= enemigo_x
+            <= cam_x + ANCHO_PANTALLA / 2 + margen
+        )
+    
+    
     def on_update(self, delta_time):
         self.motor_fisica.update()  
         self.jugador_lista.update()
@@ -182,6 +194,21 @@ class MiJuego(arcade.View):
         self.centrar_camara_en_jugador()  # Actualizar cámara
         self.monedas.update()
         
+        
+        for enemigo in self.enemigos:
+            print(type(self.jugador.center_x))
+            if self.enemigo_en_pantalla(enemigo):
+                if enemigo.center_x < self.jugador.center_x:
+                    enemigo.change_x = 2
+                else:
+                    enemigo.change_x = -2
+            else:
+                enemigo.change_x = 0
+
+
+        self.enemigos.update()
+
+
         for enemigo in enemigos_tocados:
             if self.jugador.change_y < 0:
                 enemigo.remove_from_sprite_lists()
