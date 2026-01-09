@@ -31,6 +31,7 @@ class MiJuego(arcade.View):
         self.sonido_moneda = None
         self.sonido_vidas = None
         self.sonido_muerte = None
+        self.sonido_derrotar_enemigos = None
         
 
     def setup(self, vidas):
@@ -62,6 +63,7 @@ class MiJuego(arcade.View):
         self.sonido_daño = arcade.load_sound("assets/sounds/hitHurt.wav")
         self.sonido_vidas = arcade.load_sound("assets/sounds/powerUp.wav")
         self.sonido_muerte = arcade.load_sound("assets/sounds/synth.wav")
+        self.sonido_derrotar_enemigos = arcade.load_sound("assets/sounds/explosion.wav")
         if vidas:
             self.vidas = vidas
         else:
@@ -165,6 +167,8 @@ class MiJuego(arcade.View):
         """Se ejecuta cuando se suelta una tecla."""
         self.jugador.liberar_tecla(tecla)
 
+        
+
     def on_update(self, delta_time):
         self.motor_fisica.update()  
         self.jugador_lista.update()
@@ -179,16 +183,21 @@ class MiJuego(arcade.View):
         self.monedas.update()
         
         for enemigo in enemigos_tocados:
-            enemigo.remove_from_sprite_lists()
-            self.vidas -=1
-            arcade.play_sound(self.sonido_daño)
-            menu = MenuView(self.window, 1, self.vidas, 1)
-            if self.vidas <= 0:
-                arcade.play_sound(self.sonido_muerte)
-                game_over = GameOverView(self.puntuacion)
-                self.window.show_view(game_over)
+            if self.jugador.change_y < 0:
+                enemigo.remove_from_sprite_lists()
+                self.jugador.change_y = 30
+                arcade.play_sound(self.sonido_derrotar_enemigos)
             else:
-                self.window.show_view(menu)
+                enemigo.remove_from_sprite_lists()
+                self.vidas -=1
+                arcade.play_sound(self.sonido_daño)
+                menu = MenuView(self.window, 1, self.vidas, 1)
+                if self.vidas <= 0:
+                    arcade.play_sound(self.sonido_muerte)
+                    game_over = GameOverView(self.puntuacion)
+                    self.window.show_view(game_over)
+                else:   
+                    self.window.show_view(menu)
 
 
         for moneda in monedas_tocadas:
