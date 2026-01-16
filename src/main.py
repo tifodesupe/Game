@@ -9,6 +9,7 @@ from constantes import (
     TILE_SCALING,
 )
 from player import JugadorAnimado
+from enemies import EnemigoAnimado
 
 class MiJuego(arcade.View):
     """Ventana principal del juego"""
@@ -92,7 +93,16 @@ class MiJuego(arcade.View):
         # Extraer las capas como SpriteLists
         self.plataformas = self.tile_map.sprite_lists["Plataformas"]
         self.monedas = self.tile_map.sprite_lists["Monedas"]
-        self.enemigos = self.tile_map.sprite_lists["Enemigos"]
+        self.enemigos = arcade.SpriteList()
+
+        for enemigo_tile in self.tile_map.sprite_lists["Enemigos"]:
+            enemigo = EnemigoAnimado()
+            enemigo.center_x = enemigo_tile.center_x
+            enemigo.bottom = enemigo_tile.bottom
+            self.enemigos.append(enemigo)
+
+            enemigo_tile.remove_from_sprite_lists()
+
         for moneda in self.monedas:
             #print("Moneda:", moneda)
             pass
@@ -172,7 +182,7 @@ class MiJuego(arcade.View):
 
         cam_x = self.camara_juego.position.x
 
-        enemigo_x = enemigo.position[0]  # 👈 forzado a float
+        enemigo_x = enemigo.position[0]    
 
         return (
             cam_x - ANCHO_PANTALLA / 2 - margen
@@ -207,7 +217,7 @@ class MiJuego(arcade.View):
 
 
         self.enemigos.update()
-
+        self.enemigos.update_animation(delta_time)
 
         for enemigo in enemigos_tocados:
             if self.jugador.change_y < 0:
@@ -235,6 +245,7 @@ class MiJuego(arcade.View):
                 arcade.play_sound(self.sonido_vidas)
                 self.vidas +=1
             # Aquí podrías reproducir un sonido
+
 
 
 class MenuView(arcade.View):
