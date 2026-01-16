@@ -27,12 +27,14 @@ class MiJuego(arcade.View):
         self.camara_gui = None
         self.vidas = None
         self.window = window
-        self.enemigos = None
+        self.   enemigos = None
         self.sonido_daño = None
         self.sonido_moneda = None
         self.sonido_vidas = None
         self.sonido_muerte = None
         self.sonido_derrotar_enemigos = None
+        self.enemigos_derrotados = None
+        self.enemigos_existentes = None
         
 
     def setup(self, vidas):
@@ -60,6 +62,8 @@ class MiJuego(arcade.View):
         self.jugador.center_y = ALTO_PANTALLA // 2
         self.jugador_lista.append(self.jugador)
         self.puntuacion = 0
+        self.enemigos_derrotados = 0
+        self.enemigos_existentes = 0
         self.sonido_moneda = arcade.load_sound("assets/sounds/pickupCoin.wav")
         self.sonido_daño = arcade.load_sound("assets/sounds/hitHurt.wav")
         self.sonido_vidas = arcade.load_sound("assets/sounds/powerUp.wav")
@@ -100,6 +104,7 @@ class MiJuego(arcade.View):
             enemigo.center_x = enemigo_tile.center_x
             enemigo.bottom = enemigo_tile.bottom
             self.enemigos.append(enemigo)
+            self.enemigos_existentes += 1
 
             enemigo_tile.remove_from_sprite_lists()
 
@@ -206,7 +211,6 @@ class MiJuego(arcade.View):
         
         
         for enemigo in self.enemigos:
-            print(type(self.jugador.center_x))
             if self.enemigo_en_pantalla(enemigo):
                 if enemigo.center_x < self.jugador.center_x:
                     enemigo.change_x = 2
@@ -224,18 +228,22 @@ class MiJuego(arcade.View):
                 enemigo.remove_from_sprite_lists()
                 self.jugador.change_y = 30
                 arcade.play_sound(self.sonido_derrotar_enemigos)
+                self.enemigos_derrotados +=1
+                if self.enemigos_existentes == self.enemigos_derrotados:
+                    menu = MenuView(self.window, 1, 0, 0, 1, 1)
+                    self.window.show_view(menu)
             else:
                 enemigo.remove_from_sprite_lists()
                 self.vidas -=1
                 arcade.play_sound(self.sonido_daño)
-                menu = MenuView(self.window, 1, self.vidas, 1)
+                menu = MenuView(self.window, 1, self.vidas, 1, 0, 0)
                 if self.vidas <= 0:
                     arcade.play_sound(self.sonido_muerte)
                     game_over = GameOverView(self.puntuacion)
                     self.window.show_view(game_over)
                 else:   
                     self.window.show_view(menu)
-
+        
 
         for moneda in monedas_tocadas:
             moneda.remove_from_sprite_lists()
@@ -250,28 +258,33 @@ class MiJuego(arcade.View):
 
 class MenuView(arcade.View):
     """Vista del menú principal."""
-    def __init__(self, window, quitar_musica, vidas, reanudar):
+    def __init__(self, window, quitar_musica, vidas, reanudar, ganar, cambiar_musica):
         super().__init__(window)
         self.window = window
         self.sonido_fondo = arcade.load_sound("assets/sounds/music/BloonGame.mp3")
-        self.music_player = None
+        self.sonido_ganar = arcade.load_sound("assets/sounds/music/Monkeys_Spinning_Monkeys.mp3")
         self.quitar_musica = quitar_musica
         self.vidas = vidas
         self.reanudar = reanudar
+        self.ganar = ganar
+        self.cambiar_musica = cambiar_musica
 
     def on_show_view(self):
         """Se ejecuta cuando esta vista se activa (equivalente a enter())."""
         arcade.set_background_color(arcade.color.DARK_BLUE)
     
-        if not self.sonido_fondo or self.quitar_musica:
+        if not self.sonido_fondo or (self.quitar_musica and not self.ganar):
             return
+        if not self.quitar_musica and not self.cambiar_musica:
+            self.window.music_player.play()
+        elif self.quitar_musica and self.cambiar_musica:
+            self.window.music_player.pause()
+            self.window.music_player = arcade.play_sound(
+                self.sonido_ganar,
+                volume=0.3,  # Volumen bajo para no molestar
+                loop=True  # Repetir infinitamente
+            )
         
-        self.music_player = arcade.play_sound(
-            self.sonido_fondo,
-            volume=0.3,  # Volumen bajo para no molestar
-            loop=True  # Repetir infinitamente
-        )
-
     def on_draw(self):
         """Dibuja el menú."""
         self.clear()
@@ -283,9 +296,17 @@ class MenuView(arcade.View):
             font_size=50,
             anchor_x="center"
         )
-        if  not self.reanudar:
+        if self.ganar:
             arcade.draw_text(
-                "Presiona ENTER para comenzar",
+                "Has ganado el juego, felicidades. Gracias por jugar",
+                ANCHO_PANTALLA / 2,
+                ALTO_PANTALLA / 2 - 10,
+                arcade.color.LIGHT_GRAY,
+                font_size=20,
+                anchor_x="center"
+            )
+            arcade.draw_text(
+                "Presiona ENTER para reiniciar",
                 ANCHO_PANTALLA / 2,
                 ALTO_PANTALLA / 2 - 30,
                 arcade.color.LIGHT_GRAY,
@@ -293,29 +314,50 @@ class MenuView(arcade.View):
                 anchor_x="center"
             )
         else:
+            if  not self.reanudar:
+                arcade.draw_text(
+                    "Presiona ENTER para comenzar",
+                    ANCHO_PANTALLA / 2,
+                    ALTO_PANTALLA / 2 - 30,
+                    arcade.color.LIGHT_GRAY,
+                    font_size=20,
+                    anchor_x="center"
+                )
+            else:
+                arcade.draw_text(
+                    "Presiona ENTER para continuar",
+                    ANCHO_PANTALLA / 2,
+                    ALTO_PANTALLA / 2 - 30,
+                    arcade.color.LIGHT_GRAY,
+                    font_size=20,
+                    anchor_x="center"
+                )
             arcade.draw_text(
-                "Presiona ENTER para continuar",
-                ANCHO_PANTALLA / 2,
-                ALTO_PANTALLA / 2 - 30,
-                arcade.color.LIGHT_GRAY,
+                "Presiona ESCAPE para salir",
+                ANCHO_PANTALLA / 2- 123,
+                ALTO_PANTALLA / 2 - 298,
+                arcade.color.RED,
                 font_size=20,
-                anchor_x="center"
+                anchor_x="right"
             )
-        arcade.draw_text(
-            "Presiona ESCAPE para salir",
-            ANCHO_PANTALLA / 2- 123,
-            ALTO_PANTALLA / 2 - 298,
-            arcade.color.RED,
-            font_size=20,
-            anchor_x="right"
-        )
 
     def on_key_press(self, key, modifiers):
         """Maneja las teclas presionadas."""
         if key == arcade.key.ENTER:
-            # Transición al estado de juego
-            game_view = MiJuego(self.window)
-            game_view.setup(self.vidas)
+            if self.ganar:
+                self.window.music_player.pause()
+                self.window.music_player = arcade.play_sound(
+                    self.sonido_fondo,
+                    volume=0.3,  # Volumen bajo para no molestar
+                    loop=True  # Repetir infinitamente
+                ) 
+                game_view = MiJuego(self.window)
+                game_view.setup(self.vidas)
+                self.window.show_view(game_view) 
+            else:
+                # Transición al estado de juego
+                game_view = MiJuego(self.window)
+                game_view.setup(self.vidas)
             self.window.show_view(game_view)
         if key == arcade.key.ESCAPE:
             arcade.close_window()            
@@ -366,7 +408,7 @@ class PauseView(arcade.View):
             self.window.show_view(self.game_view)
         elif key == arcade.key.Q:
             # Volver al menú (nueva instancia)
-            menu = MenuView(self.window, 1, 0, 0)
+            menu = MenuView(self.window, 1, 0, 0, 0, 0)
             self.window.show_view(menu)
     
 class GameOverView(arcade.View):
@@ -399,17 +441,28 @@ class GameOverView(arcade.View):
 
     def on_key_press(self, key, modifiers):
         if key == arcade.key.ENTER:
-            menu = MenuView(self.window, 1, 0, 0)
+            menu = MenuView(self.window, 1, 0, 0, 0, 0)
             self.window.show_view(menu)
 
+class Ventana(arcade.Window):
+    def __init__(self, ancho, alto, titulo):
+        super().__init__(ancho, alto, titulo)
+        sonido_fondo = arcade.load_sound("assets/sounds/music/BloonGame.mp3")
+
+        self.music_player = arcade.play_sound(
+            sonido_fondo,
+            volume=0.3,  # Volumen bajo para no molestar
+            loop=True  # Repetir infinitamente
+        )
+        self.music_player.pause()
 
 
 def main():
     """Función principal del juego"""
-    window = arcade.Window(ANCHO_PANTALLA, ALTO_PANTALLA, TITULO)
+    window = Ventana(ANCHO_PANTALLA, ALTO_PANTALLA, TITULO)
     #arcade.run()
 
-    menu = MenuView(window, 0, 0, 0)
+    menu = MenuView(window, 0, 0, 0, 0, 0)
     window.show_view(menu)
     arcade.run()
 
